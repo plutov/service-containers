@@ -1,0 +1,47 @@
+name: "integration-tests"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-24.04
+    container: cgr.dev/chainguard/go:1.23
+
+    env:
+      MONGO_URI: mongodb://mongo:27017
+      REDIS_URI: redis://redis:6379
+
+    services:
+      mongo:
+        image: mongodb/mongodb-community-server:7.0-ubi8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet"
+          --health-interval 5s
+          --health-timeout 10s
+          --health-retries 10
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 10s
+          --health-retries 10
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run Integration Tests
+        run: go test -tags=integration -timeout=120s -v ./...
