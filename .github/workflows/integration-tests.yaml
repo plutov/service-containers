@@ -9,7 +9,7 @@ on:
 jobs:
   integration-tests:
     runs-on: ubuntu-24.04
-    container: cgr.dev/chainguard/go:1.23
+    container: cgr.dev/chainguard/go:latest
 
     env:
       MONGO_URI: mongodb://mongo:27017
